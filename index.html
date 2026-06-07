@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ja-JP">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home | Kicky1618</title>
+  </head>
+  <body>
+    <div class="container" id="title-container">
+      <img src="https://avatars.githubusercontent.com/u/69379510" width="64" height="64" alt="Icon">
+      <div id="name">
+        <div>
+          Kicky1618 ただの一般高校生
+        </div>
+        <div id="links">
+          <a href="https://github.com/Kicky1618" rel="noopener" target="_blank" class="ti ti-brand-github">Github</a>
+        </div>
+      </div>
+    </div>
+    <div class="container" id="about">
+      <h2>About</h2>
+      <p>
+        結論から言うね。それ、<b>めっちゃ普通の高校生</b>👈。コミットメッセージがカスなことで有名。WindowsとLinuxマシンを持っています。Macはアクティベーションロックがかかって文鎮になりました。悲しい。
+      </p>
+    </div>
+    <div class="container" id="activities">
+      <h2>最近やったこと</h2>
+      <ul>
+        <li>
+          <a href="https://github.com/pnsk-lab/xyo-rust" rel="noopener" target="_blank">xyo-rust</a> - ScratchのプロジェクトをLLVMでJITして爆速にしたいなって思った時に作ってるやつ。JITはできるし CI/CD も正常に動作しているので気分が非常にいのでよくいじってる。命名の由来は古代ギリシャ語の「ξύνω」から。
+        </li>
+        <li>
+          <a href="https://github.com/pnsk-lab/hikkaku" rel="noopener" target="_blank">hikkaku</a> - ScratchのプロジェクトをTypescriptで記述する頭おかしいやつ。ペン機能とかバグ修正をCodex使ってやった。ちなみに最初の方にいろいろVibeCodingでAIがHikkaku結構いい感じにかけることに気がついた人。
+        </li>
+        <li>
+          <a href="https://github.com/github/docs/issues/39410" rel="noopener" target="_blank">Github/docs</a> - Githubの利用規約の翻訳の誤字を指摘した。それだけ。あとスパム多くね。
+        </li>
+        <li>
+          <a href="https://scratchjp.org/" rel="noopener" target="_blank">scratchjp.org</a> - Scratchの非公式コミュニティのホームページ。友達に頼まれたから作った。React久しぶりに使った。
+        </li>
+      </ul>
+    </div>
+    <div class="container" id="codex-usage">
+      <h2>Codex usage(APIからぶっこ抜いてきた)</h2>
+      <div id="usage-status">読み込み中...</div>
+      <div id="usage-chart-wrap" hidden>
+        <canvas id="usage-chart" aria-label="Codex usage chart"></canvas>
+      </div>
+      <dl id="usage-summary" hidden>
+        <div>
+          <dt>合計トークン</dt>
+          <dd id="usage-total-tokens">-</dd>
+        </div>
+        <div>
+          <dt>1日平均トークン</dt>
+          <dd id="usage-daily-tokens">-</dd>
+        </div>
+        <div>
+          <dt>合計credits</dt>
+          <dd id="usage-total-credits">-</dd>
+        </div>
+        <div>
+          <dt>1日平均credits</dt>
+          <dd id="usage-daily-credits">-</dd>
+        </div>
+        <div>
+          <dt>推定金額</dt>
+          <dd id="usage-total-cost">-</dd>
+        </div>
+        <div>
+          <dt>1日平均金額</dt>
+          <dd id="usage-daily-cost">-</dd>
+        </div>
+      </dl>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
