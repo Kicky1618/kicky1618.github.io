@@ -305,7 +305,7 @@ function init() {
             const { status } = getUsageChartElements();
             status.textContent = "Codex usageを読み込めませんでした。プロキシが起動しているか確認してください。";
         })
-    fetch("http://localhost:30012/limit/")
+    fetch("http://kicky_api.jet9.app/limit/")
         .then((response) => {
             if (!response.ok) {
                 throw new Error(`Codex rate limit request failed: ${response.status}`);
