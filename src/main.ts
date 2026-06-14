@@ -81,14 +81,13 @@ function getUsageChartElements() {
 }
 
 function getRateLimitElements() {
-    const status = document.querySelector<HTMLDivElement>("#rate-limit-status");
     const summary = document.querySelector<HTMLDivElement>("#rate-limit-summary");
 
-    if (!status || !summary) {
+    if (!summary) {
         throw new Error("rate limit elements are missing");
     }
 
-    return { status, summary };
+    return { summary };
 }
 
 function formatDateLabel(date: string) {
@@ -181,9 +180,8 @@ function setRateLimitWindow(prefix: "primary" | "secondary", window: RateLimitWi
 }
 
 function renderRateLimitStatus(rateLimit: RateLimitStatus) {
-    const { status, summary } = getRateLimitElements();
+    const { summary } = getRateLimitElements();
 
-    status.dataset.state = rateLimit.limit_reached || !rateLimit.allowed ? "blocked" : "allowed";
     setRateLimitWindow("primary", rateLimit.primary_window);
     setRateLimitWindow("secondary", rateLimit.secondary_window);
     summary.hidden = false;
@@ -318,9 +316,6 @@ function init() {
         })
         .catch((error) => {
             console.error(error);
-            const { status } = getRateLimitElements();
-            status.textContent = "レート制限を読み込めませんでした。";
-            status.dataset.state = "blocked";
         })
 }
 
