@@ -53,6 +53,20 @@ let codex_usage: DailyUsage[] | null = null
 
 let usageChart: Chart<"bar", number[], string> | null = null;
 
+type RateLimitStatus = {
+    allowed: boolean;
+    limit_reached: boolean;
+    primary_window: RateLimitWindow;
+    secondary_window: RateLimitWindow;
+};
+
+type RateLimitWindow = {
+    used_percent: number;
+    limit_window_seconds: number;
+    reset_after_seconds: number;
+    reset_at: number;
+};
+
 function getUsageChartElements() {
     const canvas = document.querySelector<HTMLCanvasElement>("#usage-chart");
     const chartWrap = document.querySelector<HTMLDivElement>("#usage-chart-wrap");
@@ -64,6 +78,17 @@ function getUsageChartElements() {
     }
 
     return { canvas, chartWrap, status, summary };
+}
+
+function getRateLimitElements() {
+    const status = document.querySelector<HTMLDivElement>("#rate-limit-status");
+    const summary = document.querySelector<HTMLDivElement>("#rate-limit-summary");
+
+    if (!status || !summary) {
+        throw new Error("rate limit elements are missing");
+    }
+
+    return { status, summary };
 }
 
 function formatDateLabel(date: string) {
@@ -89,6 +114,43 @@ function formatUsd(value: number) {
     }).format(value);
 }
 
+function formatPercent(value: number) {
+    return `${formatNumber(value, 1)}%`;
+}
+
+function formatDuration(seconds: number) {
+    const safeSeconds = Math.max(0, Math.round(seconds));
+    const days = Math.floor(safeSeconds / 86400);
+    const hours = Math.floor((safeSeconds % 86400) / 3600);
+    const minutes = Math.floor((safeSeconds % 3600) / 60);
+
+    if (days > 0) {
+        return `${days}日${hours}時間`;
+    }
+
+    if (hours > 0) {
+        return `${hours}時間${minutes}分`;
+    }
+
+    return `${minutes}分`;
+}
+
+function formatResetTime(resetAt: number) {
+    const resetAtMs = resetAt > 1_000_000_000_000 ? resetAt : resetAt * 1000;
+    const date = new Date(resetAtMs);
+
+    if (Number.isNaN(date.getTime())) {
+        return "-";
+    }
+
+    return new Intl.DateTimeFormat("ja-JP", {
+        month: "numeric",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    }).format(date);
+}
+
 function setText(selector: string, text: string) {
     const element = document.querySelector<HTMLElement>(selector);
 
@@ -97,6 +159,34 @@ function setText(selector: string, text: string) {
     }
 
     element.textContent = text;
+}
+
+function setRateLimitWindow(prefix: "primary" | "secondary", window: RateLimitWindow) {
+    const usedPercent = Math.min(Math.max(window.used_percent, 0), 100);
+    const bar = document.querySelector<HTMLSpanElement>(`#rate-limit-${prefix}-bar`);
+
+    if (!bar) {
+        throw new Error(`#rate-limit-${prefix}-bar is missing`);
+    }
+
+    setText(`#rate-limit-${prefix}-percent`, formatPercent(window.used_percent));
+    setText(`#rate-limit-${prefix}-window`, formatDuration(window.limit_window_seconds));
+    setText(
+        `#rate-limit-${prefix}-reset`,
+        `${formatDuration(window.reset_after_seconds)}後 (${formatResetTime(window.reset_at)})`,
+    );
+
+    bar.style.width = `${usedPercent}%`;
+    bar.dataset.level = usedPercent >= 90 ? "danger" : usedPercent >= 70 ? "warning" : "normal";
+}
+
+function renderRateLimitStatus(rateLimit: RateLimitStatus) {
+    const { status, summary } = getRateLimitElements();
+
+    status.dataset.state = rateLimit.limit_reached || !rateLimit.allowed ? "blocked" : "allowed";
+    setRateLimitWindow("primary", rateLimit.primary_window);
+    setRateLimitWindow("secondary", rateLimit.secondary_window);
+    summary.hidden = false;
 }
 
 function renderUsageSummary(usage: DailyUsage[]) {
@@ -198,7 +288,7 @@ function renderUsageChart(usage: DailyUsage[]) {
 }
 
 function init() {
-    fetch("https://kicky_api.jet9.app/")
+    fetch("https://kicky_api.jet9.app/usage/")
         .then((response) => {
             if (!response.ok) {
                 throw new Error(`Codex usage request failed: ${response.status}`);
@@ -214,6 +304,23 @@ function init() {
             console.error(error);
             const { status } = getUsageChartElements();
             status.textContent = "Codex usageを読み込めませんでした。プロキシが起動しているか確認してください。";
+        })
+    fetch("http://localhost:30012/limit/")
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`Codex rate limit request failed: ${response.status}`);
+            }
+
+            return response.json();
+        })
+        .then((rateLimit: RateLimitStatus) => {
+            renderRateLimitStatus(rateLimit);
+        })
+        .catch((error) => {
+            console.error(error);
+            const { status } = getRateLimitElements();
+            status.textContent = "レート制限を読み込めませんでした。";
+            status.dataset.state = "blocked";
         })
 }
 
