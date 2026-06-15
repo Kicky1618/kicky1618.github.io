@@ -162,21 +162,23 @@ function setText(selector: string, text: string) {
 
 function setRateLimitWindow(prefix: "primary" | "secondary", window: RateLimitWindow) {
     const usedPercent = Math.min(Math.max(window.used_percent, 0), 100);
-    const bar = document.querySelector<HTMLSpanElement>(`#rate-limit-${prefix}-bar`);
+    const remainingPercent = 100 - usedPercent;
+    const circle = document.querySelector<HTMLDivElement>(`#rate-limit-${prefix}-circle`);
 
-    if (!bar) {
-        throw new Error(`#rate-limit-${prefix}-bar is missing`);
+    if (!circle) {
+        throw new Error(`#rate-limit-${prefix}-circle is missing`);
     }
 
-    setText(`#rate-limit-${prefix}-percent`, formatPercent(window.used_percent));
+    setText(`#rate-limit-${prefix}-percent`, `${formatPercent(remainingPercent)} 残り`);
     setText(`#rate-limit-${prefix}-window`, formatDuration(window.limit_window_seconds));
     setText(
         `#rate-limit-${prefix}-reset`,
         `${formatDuration(window.reset_after_seconds)}後 (${formatResetTime(window.reset_at)})`,
     );
 
-    bar.style.width = `${usedPercent}%`;
-    bar.dataset.level = usedPercent >= 90 ? "danger" : usedPercent >= 70 ? "warning" : "normal";
+    circle.style.setProperty("--remaining-percent", `${remainingPercent}%`);
+    circle.dataset.level = remainingPercent <= 10 ? "danger" : remainingPercent <= 30 ? "warning" : "normal";
+    circle.setAttribute("aria-valuenow", formatNumber(remainingPercent, 1));
 }
 
 function renderRateLimitStatus(rateLimit: RateLimitStatus) {

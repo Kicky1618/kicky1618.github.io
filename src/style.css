@@ -92,29 +92,34 @@ a{
   font-size: 15pt;
 }
 
-.rate-limit-bar{
-  height: 8px;
-  margin-top: 8px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgb(53, 53, 53);
+.rate-limit-circle{
+  --remaining-percent: 0%;
+  --meter-color: rgb(124, 231, 220);
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 92px;
+  aspect-ratio: 1;
+  margin: 10px auto 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle closest-side, rgb(30, 30, 30) 70%, transparent 72%),
+    conic-gradient(var(--meter-color) var(--remaining-percent), rgb(53, 53, 53) 0);
+  transition: background 280ms ease;
 }
 
-.rate-limit-bar span{
-  display: block;
-  width: 0;
-  height: 100%;
-  border-radius: inherit;
-  background: rgb(124, 231, 220);
-  transition: width 280ms ease;
+.rate-limit-circle span{
+  color: rgb(188, 188, 188);
+  font-size: 10pt;
+  font-weight: 700;
 }
 
-.rate-limit-bar span[data-level="warning"]{
-  background: rgb(245, 197, 99);
+.rate-limit-circle[data-level="warning"]{
+  --meter-color: rgb(245, 197, 99);
 }
 
-.rate-limit-bar span[data-level="danger"]{
-  background: rgb(255, 113, 113);
+.rate-limit-circle[data-level="danger"]{
+  --meter-color: rgb(255, 113, 113);
 }
 
 .rate-limit-window dl{
@@ -200,4 +205,14 @@ a{
   .rate-limit-heading strong{
     font-size: 13pt;
   }
+}
+
+#codex_usage_header{
+  display: flex;
+}
+#codex_usage_header h2 {
+  margin: 0;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
 }
