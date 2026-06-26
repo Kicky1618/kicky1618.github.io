@@ -13,6 +13,7 @@ import {
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
 
 const CREDIT_USD_RATE = 0.04;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 type TokenMetrics = {
     users: number;
@@ -97,6 +98,68 @@ function formatDateLabel(date: string) {
         month: "numeric",
         day: "numeric",
     }).format(parsed);
+}
+
+function createEmptyTokenMetrics(): TokenMetrics {
+    return {
+        users: 0,
+        threads: 0,
+        turns: 0,
+        credits: 0,
+        uncached_text_input_tokens: 0,
+        cached_text_input_tokens: 0,
+        text_output_tokens: 0,
+        text_total_tokens: 0,
+    };
+}
+
+function parseDateKey(date: string) {
+    const [year, month, day] = date.split("-").map(Number);
+
+    if (!year || !month || !day) {
+        return null;
+    }
+
+    const time = Date.UTC(year, month - 1, day);
+
+    return Number.isNaN(time) ? null : time;
+}
+
+function formatDateKey(time: number) {
+    return new Date(time).toISOString().slice(0, 10);
+}
+
+function createEmptyDailyUsage(date: string): DailyUsage {
+    return {
+        date,
+        totals: createEmptyTokenMetrics(),
+        clients: [],
+        models: [],
+    };
+}
+
+function fillMissingUsageDates(usage: DailyUsage[]) {
+    const usageByDate = new Map(usage.map((day) => [day.date, day]));
+    const dateTimes = usage
+        .map((day) => parseDateKey(day.date))
+        .filter((time): time is number => time !== null)
+        .sort((a, b) => a - b);
+
+    const firstDate = dateTimes[0];
+    const lastDate = dateTimes.at(-1);
+
+    if (firstDate === undefined || lastDate === undefined) {
+        return [...usage].sort((a, b) => a.date.localeCompare(b.date));
+    }
+
+    const filledUsage: DailyUsage[] = [];
+
+    for (let time = firstDate; time <= lastDate; time += ONE_DAY_MS) {
+        const date = formatDateKey(time);
+        filledUsage.push(usageByDate.get(date) ?? createEmptyDailyUsage(date));
+    }
+
+    return filledUsage;
 }
 
 function formatNumber(value: number, digits = 0) {
@@ -208,7 +271,7 @@ function renderUsageSummary(usage: DailyUsage[]) {
 
 function renderUsageChart(usage: DailyUsage[]) {
     const { canvas, chartWrap, status } = getUsageChartElements();
-    const sortedUsage = [...usage].sort((a, b) => a.date.localeCompare(b.date));
+    const sortedUsage = fillMissingUsageDates(usage);
     const labels = sortedUsage.map((day) => formatDateLabel(day.date));
     const credits = sortedUsage.map((day) => day.totals.credits);
 
